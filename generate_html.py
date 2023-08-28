@@ -68,7 +68,6 @@ with open('index.html', 'w', encoding='utf-8') as f:
             
     f.write("""
         <h3>Expertises de recherche</h3>
-        <h3>Publications</h3>
     </div>
     """)
 
