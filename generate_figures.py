@@ -18,7 +18,7 @@ def frequenceIndicateur(df: pd.DataFrame, variable: str) -> plotly.graph_objs._f
     table = []
     min = indicateur['N'].min()
     max = indicateur['N'].max()
-    med = indicateur['N'].median().round(0)
+    med = indicateur['N'].median().round(0).round(0).astype(int)
     moy = indicateur['N'].mean().round(2)
     ecartype = indicateur['N'].std().round(2)
 
@@ -40,7 +40,7 @@ def frequenceIndicateur(df: pd.DataFrame, variable: str) -> plotly.graph_objs._f
 
             min = subdf['N'].min()
             max = subdf['N'].max()
-            med = subdf['N'].median().round(0)
+            med = subdf['N'].median().round(0).astype(int)
             moy = subdf['N'].mean().round(2)
             ecartype = subdf['N'].std().round(2)
 

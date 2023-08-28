@@ -17,8 +17,8 @@ with open('index.html', 'w', encoding='utf-8') as f:
     f.write('<div class="accordion" id="accordionExample">')
     f.write(f""" 
         <div class="grid" 
-            style="padding-bottom:30px; width:100%; height:800px; margin-top:40px;">
-            <h3>Répartition des chercheurs</h3>
+            style="padding-bottom:30px; width:100%; height:1200px; margin-top:40px;">
+            <h3 id="chercheurs">Répartition des chercheurs</h3>
     """)
 
     ids = ['collapseOne', 'collapseTwo', 'collapseThree', 'collapseFour']
@@ -59,7 +59,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
     f.write('<select style="width: 500px;" id="fileSelector" onchange="changeIframeSource()">')
-    f.write('<option value="figures/all.html">Sélectionner un critère</option><p>&nbps;</p>')
+    f.write('<option value="figures/all.html" selected>Sélectionner un critère</option>')
 
     iFrames = ""
     for fig in figs:
@@ -85,6 +85,8 @@ with open('index.html', 'w', encoding='utf-8') as f:
                 document.getElementById("dataTable").innerHTML = selectedData;
                 document.getElementById("dataTable").style.height = "600px"
             }}
+        // Appel initial pour afficher l'iFrame par défaut
+        changeIframeSource();
         </script>
 
 
@@ -96,10 +98,9 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </div>
     """
     f.write(iFrames)
-    # f.write('<div style="clear: both; margin-top:50px;"><hr/></div>')
-            
+    f.write('<div style="clear:both; margin-top:550px;"><hr/></div>') 
     f.write("""
-        <h3>Expertises de recherche</h3>
+        <h3 id="expertises">Expertises de recherche</h3>
     </div>
     """)
 
