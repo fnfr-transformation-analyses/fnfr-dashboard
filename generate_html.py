@@ -13,16 +13,48 @@ with open('./html/footer.html') as f:
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(header)
 
-    ## Ajouter contenu
     f.write("<h2>FNFR Transformation - Analyse de données</h2></div>")
+    f.write('<div class="accordion" id="accordionExample">')
     f.write(f""" 
         <div class="grid" 
             style="padding-bottom:30px; width:100%; height:800px; margin-top:40px;">
             <h3>Répartition des chercheurs</h3>
-            <p style="margin-left:20px;">[En construction]<br/></p>
-            
-            <h4>Répartition géographique</h4>
-        """)
+    """)
+
+    ids = ['collapseOne', 'collapseTwo', 'collapseThree', 'collapseFour']
+    i = 0
+
+    for indicateur in repartitionChercheurs.keys():
+        id = ids[i]
+
+        f.write(
+        f"""
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{id}" aria-expanded="false" aria-controls="{id}">
+                    {indicateur}
+                </button>
+            </h2>
+            <div id="{id}" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                <div class="accordion-body" style="height:350px;">
+                    <!-- Conteneur gauche -->
+                    <div class="col-md-4" style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
+                        {repartitionChercheurs[indicateur]['table']}
+                    </div>
+                    <!-- Conteneur droit -->
+                    <div class="col-md-8" style="float:left; margin-top:10px; padding-left:80px; padding-right: 0px; padding-bottom:20px;">
+                        {repartitionChercheurs[indicateur]['fig']}
+                    </div>  
+                </div>
+            </div>            
+        </div>
+
+        """
+        )
+        i+=1
+
+
+    f.write('<h4 style = "margin-top: 50px;">Répartition géographique</h4>')
     
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
@@ -64,7 +96,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </div>
     """
     f.write(iFrames)
-    f.write('<div style="clear: both; margin-top:500px;"><hr/></div>')
+    # f.write('<div style="clear: both; margin-top:50px;"><hr/></div>')
             
     f.write("""
         <h3>Expertises de recherche</h3>
