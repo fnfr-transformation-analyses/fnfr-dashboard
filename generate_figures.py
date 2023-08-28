@@ -92,32 +92,33 @@ for c in freqPaysConcours['concours'].unique():
 
     tableF = tableF.sort_values(by=['N'], ascending=[False])
     tablesFreq[f"figures/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
-    
-# Figures - Par projet
-freqPaysProjets = data.groupby(['projet', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
-freqPaysProjets = freqPaysProjets.rename(columns={'chercheur': 'count'})
 
-for c in freqPaysProjets['projet'].unique():
-    slugifiedName = slugify(c)[:30]
+    # Figures - Par projet
+    freqPaysProjets = data.groupby(['projet', 'concours', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
+    freqPaysProjets = freqPaysProjets[freqPaysProjets['concours'] == c]
+    freqPaysProjets = freqPaysProjets.rename(columns={'chercheur': 'count'})
 
-    subdf = freqPaysProjets[freqPaysProjets['projet'] == c]
+    for p in freqPaysProjets['projet'].unique():
+        slugifiedName = slugify(p)[:30]
 
-    with open(f'figures/{slugifiedName}.html', 'w') as f:
-        f.write(generate_geo_figure(subdf).to_html(full_html=False, include_plotlyjs='cdn'))
+        ssubdf = freqPaysProjets[freqPaysProjets['projet'] == p]
 
-    figs.append(
-        {
-            'Nom': c,
-            'Fichier': f'figures/{slugifiedName}.html'
-        }
-    ) 
+        with open(f'figures/{slugifiedName}.html', 'w') as f:
+            f.write(generate_geo_figure(ssubdf).to_html(full_html=False, include_plotlyjs='cdn'))
 
-    subdf = subdf[['Pays', 'count']].sort_values(by='count', ascending=False)
-    
-    # Create the table to display aside from the figure
-    tableF = subdf.rename(columns = mappingTables)
+        figs.append(
+            {
+                'Nom': f"{c} -- {p}",
+                'Fichier': f'figures/{slugifiedName}.html'
+            }
+        ) 
 
-    tableF = tableF.sort_values(by=['N'], ascending=[False])
-    tablesFreq[f"figures/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+        ssubdf = ssubdf[['Pays', 'count']].sort_values(by='count', ascending=False)
+        
+        # Create the table to display aside from the figure
+        tableF = ssubdf.rename(columns = mappingTables)
+
+        tableF = tableF.sort_values(by=['N'], ascending=[False])
+        tablesFreq[f"figures/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
 tablesFreq = str(tablesFreq)
