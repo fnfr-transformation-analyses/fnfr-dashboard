@@ -59,13 +59,13 @@ with open('index.html', 'w', encoding='utf-8') as f:
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
     f.write('<select style="width: 500px;" id="fileSelector" onchange="changeIframeSource()">')
-    f.write('<option value="figures/all.html">Sélectionner un critère</option>')
+    f.write('<option value="figures/geo/all.html">Sélectionner un critère</option>')
 
     iFrames = ""
     for fig in figs:
         nom = fig['Nom']
         fichier = fig['Fichier']
-        selected = "selected" if fichier == "figures/all.html" else ""
+        selected = "selected" if fichier == "figures/geo/all.html" else ""
         iFrames += ("\n")
         iFrames += (f'<option value="{fichier}" {selected}>{nom}</option>')
 
@@ -75,6 +75,12 @@ with open('index.html', 'w', encoding='utf-8') as f:
         <!-- Conteneur gauche -->
         <div id="dataTable" class="col-md-4" 
             style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
+        </div>
+        <!-- Conteneur droit -->
+        <div id="container" class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
+            <iframe id="embeddedFrame" height="525" width="100%" 
+                style="padding:0px; overflow-y:auto;">
+            </iframe>
         </div>
         <script>
             var data = {tablesFreq};
@@ -87,14 +93,6 @@ with open('index.html', 'w', encoding='utf-8') as f:
                 document.getElementById("dataTable").style.height = "600px"
             }}
         </script>
-
-
-        <!-- Conteneur droit -->
-        <div id="container" class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
-            <iframe id="embeddedFrame" height="525" width="100%" 
-                style="padding:0px; overflow-y:auto;">
-            </iframe>
-        </div>
     """
     f.write(iFrames)
     f.write("""
@@ -103,10 +101,54 @@ with open('index.html', 'w', encoding='utf-8') as f:
             changeIframeSource();
         </script> 
     """)
-    f.write('<div style="clear:both; margin-top:550px;"><hr/></div>') 
+    f.write('<div style="clear:both; margin-top:600px;"><hr style="margin-bottom: 30px;"/></div>') 
+
+    ### Expertises de recherche
+    concours = expertises['Concours / Award'].unique().tolist()
     f.write("""
         <h3 id="expertises">Expertises de recherche</h3>
-    </div>
     """)
+
+    f.write('<select style="width:500px;" id="AwardSelector" onchange="changeAwardExpertise()">')
+    f.write(f'<option value="{concours[0]}" select>{concours[0]}</option>')
+
+    for x in concours[1:]:
+        f.write(f'<option value="{x}">{x}</option>')
+
+    f.write(
+        f"""
+        </select>
+        <div style="clear: both;"></div>
+        <!-- Conteneur gauche -->
+        <div id="tableExpertises" class="col-md-4" 
+            style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
+        </div>
+        <!-- Conteneur droit -->
+        <div class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
+            <iframe id="figureExpertise" height="525" width="100%" 
+                style="padding-left:40px; padding-right:40px; height:350px;">
+            </iFrame>
+        </div>
+        <script>
+            function changeAwardExpertise() {{
+                var tables = {repartitionExpertisesTables}
+                var figures = {repartitionExpertisesFig}
+                var selectedAward = document.getElementById("AwardSelector").value;
+
+                document.getElementById("tableExpertises").innerHTML = tables[selectedAward];
+
+                document.getElementById("figureExpertise").src = figures[selectedAward];
+            }}
+        </script>
+
+        """
+    )
+    f.write("""
+        <script>
+            // Appel initial pour afficher l'iFrame par défaut
+            changeAwardExpertise();
+        </script> 
+    """)
+    
 
     f.write(footer)

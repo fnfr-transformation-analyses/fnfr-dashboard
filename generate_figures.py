@@ -151,20 +151,20 @@ freqPays = pd.DataFrame(affiliations['Pays'].value_counts()).reset_index()
 freqPays['Code Alpha-3 Pays'] = freqPays['Pays'].map(mappingPays)
 freqPays = freqPays[['Pays', 'Code Alpha-3 Pays', 'count']]
 
-with open('figures/all.html', 'w') as f:
+with open('figures/geo/all.html', 'w') as f:
     f.write(generate_geo_figure(freqPays).to_html(full_html=False, include_plotlyjs='cdn'))
 
 figs.append(
     {
         'Nom': 'Tout',
-        'Fichier': 'figures/all.html'
+        'Fichier': 'figures/geo/all.html'
     }
 )
 
 # Create the table to display aside from the figure
 tableF = freqPays.rename(columns = mappingTables)
 tableF = tableF.sort_values(by=['N'], ascending=[False])[['Pays', 'N']]
-tablesFreq[f"figures/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+tablesFreq[f"figures/geo/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
 # Figures - Par concours
 freqPaysConcours = affiliations.groupby(['concours', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
@@ -173,13 +173,13 @@ freqPaysConcours = freqPaysConcours.rename(columns={'chercheur': 'count'})
 for c in freqPaysConcours['concours'].unique():
     subdf = freqPaysConcours[freqPaysConcours['concours'] == c]
 
-    with open(f'figures/{c}.html', 'w') as f:
+    with open(f'figures/geo/{c}.html', 'w') as f:
         f.write(generate_geo_figure(subdf).to_html(full_html=False, include_plotlyjs='cdn'))
 
     figs.append(
         {
             'Nom': c,
-            'Fichier': f'figures/{c}.html'
+            'Fichier': f'figures/geo/{c}.html'
         }
     ) 
 
@@ -189,7 +189,7 @@ for c in freqPaysConcours['concours'].unique():
     tableF = subdf.rename(columns = mappingTables)
 
     tableF = tableF.sort_values(by=['N'], ascending=[False])
-    tablesFreq[f"figures/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+    tablesFreq[f"figures/geo/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
     # Figures - Par projet
     freqPaysProjets = affiliations.groupby(['projet', 'concours', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
@@ -201,13 +201,13 @@ for c in freqPaysConcours['concours'].unique():
 
         ssubdf = freqPaysProjets[freqPaysProjets['projet'] == p]
 
-        with open(f'figures/{slugifiedName}.html', 'w') as f:
+        with open(f'figures/geo/{slugifiedName}.html', 'w') as f:
             f.write(generate_geo_figure(ssubdf).to_html(full_html=False, include_plotlyjs='cdn'))
 
         figs.append(
             {
                 'Nom': f"{c} -- {p}",
-                'Fichier': f'figures/{slugifiedName}.html'
+                'Fichier': f'figures/geo/{slugifiedName}.html'
             }
         ) 
 
@@ -217,6 +217,53 @@ for c in freqPaysConcours['concours'].unique():
         tableF = ssubdf.rename(columns = mappingTables)
 
         tableF = tableF.sort_values(by=['N'], ascending=[False])
-        tablesFreq[f"figures/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+        tablesFreq[f"figures/geo/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
 tablesFreq = str(tablesFreq)
+
+### Expertises de recherche
+expertises = pd.read_excel('data/fnrf_transformation_expertises.xlsx', sheet_name=0)
+tout = expertises.groupby(["Champ d'expertise"])['Titre de la demande'].count().reset_index()
+tout['Concours / Award'] = 'Tout'
+
+expertises = expertises.groupby(['Concours / Award', "Champ d'expertise"])['Titre de la demande'].count().reset_index()
+expertises = pd.concat([tout, expertises])
+expertises = expertises.rename(columns={"Titre de la demande": "N"})
+expertises = expertises[['Concours / Award', "Champ d'expertise", "N"]]
+
+
+repartitionExpertisesFig = {}
+repartitionExpertisesTables = {}
+for concours in expertises['Concours / Award'].unique():
+    df = expertises[expertises['Concours / Award'] == concours]
+    fig = px.pie(
+        df,
+        names = "Champ d'expertise",
+        color = "Champ d'expertise",
+        values = 'N',
+        hole = 0.5,
+        color_discrete_map=
+            {
+                'Santé':'#636efa',
+                'Sciences naturelles / génie':'#ef553b',
+                'Sciences humaines et sociales':'#00cc96'
+            },
+        category_orders={"Champ d'expertise": ["Santé", "Sciences naturelles / génie", "Sciences humaines et sociales"]}
+    )
+
+    fig.update_layout(
+        margin=dict(l=0, r=0, t=0, b=0),
+        legend=dict(yanchor="top",y=1,xanchor="left", x=-0.5)
+    )
+    
+    fileName = f"figures/expertises/{concours}.html"
+    with open(fileName, "w", encoding="utf-8") as f:
+        f.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+
+    table = df[["Champ d'expertise", "N"]].sort_values(by="N", ascending=False)
+    table = table.to_html(classes = tableClasses, justify='left', index=False)
+
+    repartitionExpertisesFig[str(concours)] = fileName
+    repartitionExpertisesTables[str(concours)] = table
+
+
