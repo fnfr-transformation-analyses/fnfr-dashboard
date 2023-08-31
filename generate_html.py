@@ -58,7 +58,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
     
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
-    f.write('<select style="width: 500px;" id="fileSelector" onchange="changeIframeSource()">')
+    f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="fileSelector" onchange="changeIframeSource()">')
     f.write('<option value="figures/geo/all.html">Sélectionner un critère</option>')
 
     iFrames = ""
@@ -109,7 +109,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
         <h3 id="expertises">Expertises de recherche</h3>
     """)
 
-    f.write('<select style="width:500px;" id="AwardSelector" onchange="changeAwardExpertise()">')
+    f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="AwardSelector" onchange="changeAwardExpertise()">')
     f.write(f'<option value="{concours[0]}" select>{concours[0]}</option>')
 
     for x in concours[1:]:
