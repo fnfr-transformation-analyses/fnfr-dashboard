@@ -27,3 +27,5 @@ def renameLongLabels(text):
     if len(text) > 30:
         return (str(text)[:30] + "...")
     else: return text
+
+apiKey = '0bb96a2e-5feb-4be8-8cd5-0533787354a6'
