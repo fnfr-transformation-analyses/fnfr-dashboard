@@ -149,6 +149,55 @@ with open('index.html', 'w', encoding='utf-8') as f:
             changeAwardExpertise();
         </script> 
     """)
+
+    ### Affiliations 
+    f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
+
+    concours = freqTypeAffiliations['Concours / Award'].unique().tolist()
+    f.write("""
+        <h3 id="affiliations">Affiliations</h3>
+    """)
+
+    f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="AwardSelectorAff" onchange="changeAwardAffiliation()">')
+    f.write(f'<option value="{concours[0]}" select>{concours[0]}</option>')
+
+    for x in concours[1:]:
+        f.write(f'<option value="{x}">{x}</option>')
+
+    f.write(
+        f"""
+        </select>
+        <div style="clear: both;"></div>
+        <!-- Conteneur gauche -->
+        <div id="tableAffiliation" class="col-md-4" 
+            style="float:left; margin-top:0px; max-height:525px; overflow-y:auto;">
+        </div>
+        <!-- Conteneur droit -->
+        <div class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
+            <iframe id="figureAffiliation" height="525" width="100%" 
+                style="padding-left:40px; padding-right:0px; height:375px;">
+            </iFrame>
+        </div>
+        <script>
+            function changeAwardAffiliation() {{
+                var tablesAff = {repartitionAffiliations}
+                var figuresAff = {repartitionAffiliationsFig}
+                var selectedAwardAff = document.getElementById("AwardSelectorAff").value;
+
+                document.getElementById("tableAffiliation").innerHTML = tablesAff[selectedAwardAff];
+
+                document.getElementById("figureAffiliation").src = figuresAff[selectedAwardAff];
+            }}
+        </script>
+
+        """
+    )
+    f.write("""
+        <script>
+            // Appel initial pour afficher l'iFrame par défaut
+            changeAwardAffiliation();
+        </script> 
+    """)
     
 
     f.write(footer)

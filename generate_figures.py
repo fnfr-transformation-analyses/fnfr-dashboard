@@ -241,6 +241,7 @@ for concours in expertises['Concours / Award'].unique():
         names = "Champ d'expertise",
         color = "Champ d'expertise",
         values = 'N',
+        hover_name = "Champ d'expertise",
         hole = 0.5,
         color_discrete_map=
             {
@@ -266,4 +267,44 @@ for concours in expertises['Concours / Award'].unique():
     repartitionExpertisesFig[str(concours)] = fileName
     repartitionExpertisesTables[str(concours)] = table
 
+
+### Types d'affiliations
+typesAffiliations = pd.read_csv('data/fnfr_types_affiliations.csv').rename(columns={'concours':'Concours / Award'})
+
+tout = pd.DataFrame(typesAffiliations['type affiliation'].value_counts()).reset_index()
+tout['Concours / Award'] = 'Tout'
+
+freqTypeAffiliations = typesAffiliations.groupby(['Concours / Award'])['type affiliation'].value_counts().reset_index()
+freqTypeAffiliations = pd.concat([tout, freqTypeAffiliations])
+freqTypeAffiliations = freqTypeAffiliations.rename(columns={"count": "N", 'type affiliation': "Affiliation"})
+freqTypeAffiliations = freqTypeAffiliations[['Concours / Award', "Affiliation", "N"]]
+
+
+repartitionAffiliationsFig = {}
+repartitionAffiliations = {}
+for concours in freqTypeAffiliations['Concours / Award'].unique():
+    df = freqTypeAffiliations[freqTypeAffiliations['Concours / Award'] == concours]
+    fig = px.pie(
+        df,
+        names = "Affiliation",
+        color = "Affiliation",
+        hover_name = 'Affiliation',
+        values = 'N',
+        hole = 0.5,
+    )
+
+    fig.update_layout(
+        margin=dict(l=55, r=0, t=0, b=0),
+        legend=dict(yanchor="top",y=1,xanchor="left", x=-0.7)
+    )
+    
+    fileName = f"figures/affiliations/{concours}.html"
+    with open(fileName, "w", encoding="utf-8") as f:
+        f.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+
+    table = df[["Affiliation", "N"]].sort_values(by="N", ascending=False)
+    table = table.to_html(classes = tableClasses, justify='left', index=False)
+
+    repartitionAffiliationsFig[str(concours)] = fileName
+    repartitionAffiliations[str(concours)] = table
 
