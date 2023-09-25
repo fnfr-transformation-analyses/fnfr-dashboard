@@ -102,12 +102,13 @@ repartitionChercheurs = {
 
 
 #### Répartition géographique
+## International 
 # charger le mapping des pays qui sera utilisé pour construire la figure
 mappingPays = pd.read_csv('utils/mapping_pays_iso.csv', sep=';', encoding='UTF-8').to_dict('records')
 mappingPays = {x['Pays'] : x['Alpha-3 code'] for x in mappingPays}
 
 # Charger les données
-affiliations = pd.read_csv('data/affiliationsChercheurs.csv', sep=';')
+affiliations = pd.read_csv('data/affiliationsChercheurs.csv')
 affiliations = affiliations[affiliations['Pays'] != '-']
 affiliations['Code Alpha-3 Pays'] = affiliations['Pays'].map(mappingPays)
 
@@ -151,20 +152,20 @@ freqPays = pd.DataFrame(affiliations['Pays'].value_counts()).reset_index()
 freqPays['Code Alpha-3 Pays'] = freqPays['Pays'].map(mappingPays)
 freqPays = freqPays[['Pays', 'Code Alpha-3 Pays', 'count']]
 
-with open('figures/geo/all.html', 'w') as f:
+with open('figures/geo/international/all.html', 'w') as f:
     f.write(generate_geo_figure(freqPays).to_html(full_html=False, include_plotlyjs='cdn'))
 
 figs.append(
     {
         'Nom': 'Tout',
-        'Fichier': 'figures/geo/all.html'
+        'Fichier': 'figures/geo/international/all.html'
     }
 )
 
 # Create the table to display aside from the figure
 tableF = freqPays.rename(columns = mappingTables)
 tableF = tableF.sort_values(by=['N'], ascending=[False])[['Pays', 'N']]
-tablesFreq[f"figures/geo/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+tablesFreq[f"figures/geo/international/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
 # Figures - Par concours
 freqPaysConcours = affiliations.groupby(['concours', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
@@ -173,13 +174,13 @@ freqPaysConcours = freqPaysConcours.rename(columns={'chercheur': 'count'})
 for c in freqPaysConcours['concours'].unique():
     subdf = freqPaysConcours[freqPaysConcours['concours'] == c]
 
-    with open(f'figures/geo/{c}.html', 'w') as f:
+    with open(f'figures/geo/international/{c}.html', 'w') as f:
         f.write(generate_geo_figure(subdf).to_html(full_html=False, include_plotlyjs='cdn'))
 
     figs.append(
         {
             'Nom': c,
-            'Fichier': f'figures/geo/{c}.html'
+            'Fichier': f'figures/geo/international/{c}.html'
         }
     ) 
 
@@ -189,7 +190,7 @@ for c in freqPaysConcours['concours'].unique():
     tableF = subdf.rename(columns = mappingTables)
 
     tableF = tableF.sort_values(by=['N'], ascending=[False])
-    tablesFreq[f"figures/geo/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+    tablesFreq[f"figures/geo/international/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
     # Figures - Par projet
     freqPaysProjets = affiliations.groupby(['projet', 'concours', 'Pays', 'Code Alpha-3 Pays'])['chercheur'].count().reset_index()
@@ -201,13 +202,13 @@ for c in freqPaysConcours['concours'].unique():
 
         ssubdf = freqPaysProjets[freqPaysProjets['projet'] == p]
 
-        with open(f'figures/geo/{slugifiedName}.html', 'w') as f:
+        with open(f'figures/geo/international/{slugifiedName}.html', 'w') as f:
             f.write(generate_geo_figure(ssubdf).to_html(full_html=False, include_plotlyjs='cdn'))
 
         figs.append(
             {
                 'Nom': f"{c} -- {p}",
-                'Fichier': f'figures/geo/{slugifiedName}.html'
+                'Fichier': f'figures/geo/international/{slugifiedName}.html'
             }
         ) 
 
@@ -217,9 +218,147 @@ for c in freqPaysConcours['concours'].unique():
         tableF = ssubdf.rename(columns = mappingTables)
 
         tableF = tableF.sort_values(by=['N'], ascending=[False])
-        tablesFreq[f"figures/geo/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+        tablesFreq[f"figures/geo/international/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
 
 tablesFreq = str(tablesFreq)
+
+## Répartition géographique
+## Canada 
+## Répartition pancanadienne
+
+# Create a scattergeo map with size of dots based on the 'count' column
+def generate_geo_figure_provinces(df: pd.DataFrame) -> plotly.graph_objs._figure.Figure:
+# Create a scattergeo map with size of dots based on the 'count' column
+    figProvince = px.scatter_geo(
+        df,
+        lat='Latitude',
+        lon='Longitude',
+        size='count',
+        color = 'Province',
+        size_max = 40,
+        color_discrete_sequence=px.colors.qualitative.Prism,
+        projection='equirectangular',  # You can change the projection as needed
+        hover_data={'Longitude':False,'Latitude':False}
+    )
+
+    # Customize the layout
+    figProvince.update_geos(
+        scope= 'world',
+        showcoastlines=False,  # Hide coastlines/borders
+        showland=True,  # Hide land area color
+        showframe = True,
+        landcolor = '#E8E8E8',
+        center=dict(lon=-100, lat=60),  # Adjust lon and lat for centering
+        lonaxis_range=[-140, -45],  # Adjust the range as needed for the desired zoom level
+        lataxis_range=[40, 85],  # Adjust the range as needed for the desired zoom level
+    )
+
+
+    figProvince = figProvince.update_layout( 
+        margin=dict(t=0, l=20, r=20, b=0),
+        legend=dict(
+        y=0.85,  # Adjust the y value to move the legend lower (0.0 is at the bottom)
+        )
+    )
+
+    return figProvince
+
+# Générer les figures
+figsProvinces = []
+tablesFreqProvinces = {}
+mappingTables = {'count': 'N'}
+
+# Figure - Tous les projets 
+# Tableau de fréquence 
+affiliationsCanada = affiliations[affiliations['Pays'] == 'Canada']
+## Répartition pancanadienne
+mapping_provinces = pd.read_csv('utils/mapping_provinces_canada_iso.csv')
+mapping_provinces = mapping_provinces[mapping_provinces['Language code'] == 'fr']
+mapping_provinces = {x['Subdivision name'] : x['3166-2 code'] for x in mapping_provinces.to_dict('records')}
+
+province_info = pd.read_csv('utils/provinces_canada_coordinates.csv')
+province_info['code-ISO province'] = province_info['Place Name'].map(mapping_provinces)
+province_info = province_info.rename(columns={'Place Name': 'Province'})
+
+affiliationsCanada = affiliations[affiliations['Pays'] == 'Canada']
+affiliationsCanada = affiliationsCanada.merge(province_info, on='Province')
+
+freqProvinces = pd.DataFrame(affiliationsCanada['Province'].value_counts()).reset_index()
+freqProvinces = freqProvinces.merge(province_info, on='Province')
+
+with open('figures/geo/canada/all.html', 'w') as f:
+    f.write(generate_geo_figure_provinces(freqProvinces).to_html(full_html=False, include_plotlyjs='cdn'))
+
+figsProvinces.append(
+    {
+        'Nom': 'Tout',
+        'Fichier': 'figures/geo/canada/all.html'
+    }
+)
+
+# Create the table to display aside from the figure
+tableF = freqProvinces.rename(columns = mappingTables)
+tableF = tableF.sort_values(by=['N'], ascending=[False])[['Province', 'N']]
+tablesFreqProvinces[f"figures/geo/canada/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+
+# Figures - Par concours
+freqProvinceConcours = affiliationsCanada.groupby(['concours', 'Province', 'code-ISO province'])['chercheur'].count().reset_index()
+freqProvinceConcours = freqProvinceConcours.rename(columns={'chercheur': 'count'})
+freqProvinceConcours = freqProvinceConcours.merge(province_info, on='Province')
+
+
+### Revoir à partir d'ici
+for c in freqProvinceConcours['concours'].unique():
+    subdf = freqProvinceConcours[freqProvinceConcours['concours'] == c]
+
+    with open(f'figures/geo/canada/{c}.html', 'w') as f:
+        f.write(generate_geo_figure_provinces(subdf).to_html(full_html=False, include_plotlyjs='cdn'))
+
+    figsProvinces.append(
+        {
+            'Nom': c,
+            'Fichier': f'figures/geo/canada/{c}.html'
+        }
+    ) 
+
+    subdf = subdf[['Province', 'count']].sort_values(by='count', ascending=False)
+    
+    # Create the table to display aside from the figure
+    tableF = subdf.rename(columns = mappingTables)
+
+    tableF = tableF.sort_values(by=['N'], ascending=[False])
+    tablesFreqProvinces[f"figures/geo/canada/{c}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+
+    # Figures - Par projet
+    freqProvinceProjets = affiliationsCanada.groupby(['projet', 'concours', 'Province'])['chercheur'].count().reset_index()
+    freqProvinceProjets = freqProvinceProjets.merge(province_info, on='Province')
+    freqProvinceProjets = freqProvinceProjets[freqProvinceProjets['concours'] == c]
+    freqProvinceProjets = freqProvinceProjets.rename(columns={'chercheur': 'count'})
+
+    for p in freqProvinceProjets['projet'].unique():
+        slugifiedName = slugify(p)[:30]
+
+        ssubdf = freqProvinceProjets[freqProvinceProjets['projet'] == p]
+
+        with open(f'figures/geo/canada/{slugifiedName}.html', 'w') as f:
+            f.write(generate_geo_figure_provinces(ssubdf).to_html(full_html=False, include_plotlyjs='cdn'))
+
+        figsProvinces.append(
+            {
+                'Nom': f"{c} -- {p}",
+                'Fichier': f'figures/geo/canada/{slugifiedName}.html'
+            }
+        ) 
+
+        ssubdf = ssubdf[['Province', 'count']].sort_values(by='count', ascending=False)
+        
+        # Create the table to display aside from the figure
+        tableF = ssubdf.rename(columns = mappingTables)
+
+        tableF = tableF.sort_values(by=['N'], ascending=[False])
+        tablesFreqProvinces[f"figures/geo/canada/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+
+tablesFreqProvinces = str(tablesFreqProvinces)
 
 ### Expertises de recherche
 expertises = pd.read_excel('data/fnrf_transformation_expertises.xlsx', sheet_name=0)
@@ -268,103 +407,103 @@ for concours in expertises['Concours / Award'].unique():
     repartitionExpertisesTables[str(concours)] = table
 
 
-### Expertises - mots-clés (profils Google Scholar)
-from sentence_transformers import SentenceTransformer, util
-import time
+# ### Expertises - mots-clés (profils Google Scholar)
+# from sentence_transformers import SentenceTransformer, util
+# import time
 
-expertises_motCles = pd.read_csv('data/fnfr_expertises_tout.csv')
+# expertises_motCles = pd.read_csv('data/fnfr_expertises_tout.csv')
 
-# Model for computing sentence embeddings. We use one trained for similar questions detection
-corpus_sentences = expertises_motCles['interests'].tolist()
-model = SentenceTransformer('all-MiniLM-L6-v2')
-corpus_embeddings = model.encode(corpus_sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
-
-
-print("Start clustering")
-start_time = time.time()
-
-#Two parameters to tune:
-#min_cluster_size: Only consider cluster that have at least 25 elements
-#threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
-clusters = util.community_detection(corpus_embeddings, min_community_size=5, threshold=0.75)
-
-#Print for all clusters the top 3 and bottom 3 elements
-# store the data
-cluster_name_list = []
-corpus_sentences_list = []
+# # Model for computing sentence embeddings. We use one trained for similar questions detection
+# corpus_sentences = expertises_motCles['interests'].tolist()
+# model = SentenceTransformer('all-MiniLM-L6-v2')
+# corpus_embeddings = model.encode(corpus_sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
 
 
-for i, cluster in enumerate(clusters):
-    for sentence_id in cluster:
-        corpus_sentences_list.append(corpus_sentences[sentence_id])
-        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+# print("Start clustering")
+# start_time = time.time()
 
-df_motsCles = pd.DataFrame(None)
-df_motsCles['cluster'] = cluster_name_list
-df_motsCles["mot-clé"] = corpus_sentences_list
+# #Two parameters to tune:
+# #min_cluster_size: Only consider cluster that have at least 25 elements
+# #threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
+# clusters = util.community_detection(corpus_embeddings, min_community_size=5, threshold=0.75)
 
-#Print for all clusters the top 3 and bottom 3 elements
-# store the data
-cluster_name_list = []
-corpus_sentences_list = []
-
-
-for i, cluster in enumerate(clusters):
-    for sentence_id in cluster:
-        corpus_sentences_list.append(corpus_sentences[sentence_id])
-        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
-
-df_motsCles = pd.DataFrame(None)
-df_motsCles['cluster'] = cluster_name_list
-df_motsCles["mot-clé"] = corpus_sentences_list
-table_motsCles = df_motsCles.to_html(classes = tableClasses, justify='left', index=False)
+# #Print for all clusters the top 3 and bottom 3 elements
+# # store the data
+# cluster_name_list = []
+# corpus_sentences_list = []
 
 
-#Print for all clusters the top 3 and bottom 3 elements
-# store the data
-cluster_name_list = []
-corpus_sentences_list = []
+# for i, cluster in enumerate(clusters):
+#     for sentence_id in cluster:
+#         corpus_sentences_list.append(corpus_sentences[sentence_id])
+#         cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+
+# df_motsCles = pd.DataFrame(None)
+# df_motsCles['cluster'] = cluster_name_list
+# df_motsCles["mot-clé"] = corpus_sentences_list
+
+# #Print for all clusters the top 3 and bottom 3 elements
+# # store the data
+# cluster_name_list = []
+# corpus_sentences_list = []
 
 
-for i, cluster in enumerate(clusters):
-    for sentence_id in cluster:
-        corpus_sentences_list.append(corpus_sentences[sentence_id])
-        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+# for i, cluster in enumerate(clusters):
+#     for sentence_id in cluster:
+#         corpus_sentences_list.append(corpus_sentences[sentence_id])
+#         cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
 
-df_motsCles = pd.DataFrame(None)
-df_motsCles['cluster'] = cluster_name_list
-df_motsCles["mot-clé"] = corpus_sentences_list
-
-df = pd.DataFrame(None)
-df['cluster'] = cluster_name_list
-df["mot-clé"] = corpus_sentences_list
-
-from sklearn.manifold import TSNE
-import numpy as np 
-import plotly_express as px
-
-sentences = df['mot-clé'].tolist()
-X = np.array(model.encode(sentences))
-
-X_embedded = TSNE(n_components=2).fit_transform(X)
-
-df_embeddings = pd.DataFrame(X_embedded)
-df_embeddings = df_embeddings.rename(columns={0:'x',1:'y'})
-df_embeddings = df_embeddings.assign(cluster=df['cluster'].values)
-df_embeddings = df_embeddings.assign(mot_cle=df['mot-clé'].values)
+# df_motsCles = pd.DataFrame(None)
+# df_motsCles['cluster'] = cluster_name_list
+# df_motsCles["mot-clé"] = corpus_sentences_list
+# table_motsCles = df_motsCles.to_html(classes = tableClasses, justify='left', index=False)
 
 
-fig_motsCles = px.scatter(
-    df_embeddings, 
-    x='x', 
-    y='y', 
-    color='cluster', 
-    labels={'color': 'label'},
-    hover_data=['mot_cle']
-)
+# #Print for all clusters the top 3 and bottom 3 elements
+# # store the data
+# cluster_name_list = []
+# corpus_sentences_list = []
 
-with open('figures/visualization_motsCles.html', 'w') as f:
-    f.write(fig_motsCles.to_html(full_html=False, include_plotlyjs='cdn'))
+
+# for i, cluster in enumerate(clusters):
+#     for sentence_id in cluster:
+#         corpus_sentences_list.append(corpus_sentences[sentence_id])
+#         cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+
+# df_motsCles = pd.DataFrame(None)
+# df_motsCles['cluster'] = cluster_name_list
+# df_motsCles["mot-clé"] = corpus_sentences_list
+
+# df = pd.DataFrame(None)
+# df['cluster'] = cluster_name_list
+# df["mot-clé"] = corpus_sentences_list
+
+# from sklearn.manifold import TSNE
+# import numpy as np 
+# import plotly_express as px
+
+# sentences = df['mot-clé'].tolist()
+# X = np.array(model.encode(sentences))
+
+# X_embedded = TSNE(n_components=2).fit_transform(X)
+
+# df_embeddings = pd.DataFrame(X_embedded)
+# df_embeddings = df_embeddings.rename(columns={0:'x',1:'y'})
+# df_embeddings = df_embeddings.assign(cluster=df['cluster'].values)
+# df_embeddings = df_embeddings.assign(mot_cle=df['mot-clé'].values)
+
+
+# fig_motsCles = px.scatter(
+#     df_embeddings, 
+#     x='x', 
+#     y='y', 
+#     color='cluster', 
+#     labels={'color': 'label'},
+#     hover_data=['mot_cle']
+# )
+
+# with open('figures/visualization_motsCles.html', 'w') as f:
+#     f.write(fig_motsCles.to_html(full_html=False, include_plotlyjs='cdn'))
 
 
 ### Types d'affiliations

@@ -53,19 +53,19 @@ with open('index.html', 'w', encoding='utf-8') as f:
         )
         i+=1
 
-
-    f.write('<h4 style = "margin-top: 50px;">Répartition géographique</h4>')
+    # Répartition géographique -- International
+    f.write('<h4 style = "margin-top: 50px;">Répartition géographique (international)</h4>')
     
     # Conteneur principal
     f.write('<div style="clear: both;"></div>')
     f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="fileSelector" onchange="changeIframeSource()">')
-    f.write('<option value="figures/geo/all.html">Sélectionner un critère</option>')
+    f.write('<option value="figures/geo/international/all.html">Sélectionner un critère</option>')
 
     iFrames = ""
     for fig in figs:
         nom = fig['Nom']
         fichier = fig['Fichier']
-        selected = "selected" if fichier == "figures/geo/all.html" else ""
+        selected = "selected" if fichier == "figures/geo/international/all.html" else ""
         iFrames += ("\n")
         iFrames += (f'<option value="{fichier}" {selected}>{nom}</option>')
 
@@ -102,6 +102,57 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </script> 
     """)
     f.write('<div style="clear:both; margin-top:600px;"><hr style="margin-bottom: 30px;"/></div>') 
+
+    # Répartition géographique -- Canada (to-do : système d'onglets)
+    f.write('<h4 style = "margin-top: 50px;">Répartition géographique (pancanadienne)</h4>')
+    
+    # Conteneur principal
+    f.write('<div style="clear: both;"></div>')
+    f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="fileSelectorProvince" onchange="changeIframeSourceProvince()">')
+    f.write('<option value="figures/geo/canada/all.html">Sélectionner un critère</option>')
+
+    iFrames = ""
+    for fig in figsProvinces:
+        nom = fig['Nom']
+        fichier = fig['Fichier']
+        selected = "selected" if fichier == "figures/geo/canada/all.html" else ""
+        iFrames += ("\n")
+        iFrames += (f'<option value="{fichier}" {selected}>{nom}</option>')
+
+    iFrames += f"""
+        </select>
+        <div style="clear: both;"></div>
+        <!-- Conteneur gauche -->
+        <div id="dataTableProvince" class="col-md-4" 
+            style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
+        </div>
+        <!-- Conteneur droit -->
+        <div id="containerProvince" class="col-md-8" style="float: right; margin-top:-40px; padding-bottom:20px;">
+            <iframe id="embeddedFrameProvince" height="525" width="100%" 
+                style="padding:0px; overflow-y:auto;">
+            </iframe>
+        </div>
+        <script>
+            var dataProvince = {tablesFreqProvinces};
+            function changeIframeSourceProvince() {{
+                var selectedFileProvince = document.getElementById("fileSelectorProvince").value;
+                document.getElementById("embeddedFrameProvince").src = selectedFileProvince;
+            
+                var selectedDataProvince = dataProvince[selectedFileProvince];
+                document.getElementById("dataTableProvince").innerHTML = selectedDataProvince;
+                document.getElementById("dataTableProvince").style.height = "600px"
+            }}
+        </script>
+    """
+    f.write(iFrames)
+    f.write("""
+        <script>
+            // Appel initial pour afficher l'iFrame par défaut
+            changeIframeSourceProvince();
+        </script> 
+    """)
+    f.write('<div style="clear:both; margin-top:600px;"><hr style="margin-bottom: 30px;"/></div>') 
+
 
     ### Expertises de recherche
     concours = expertises['Concours / Award'].unique().tolist()
@@ -150,31 +201,31 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </script> 
     """)
 
-    # Mots-clés
-    f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
-    f.write("""
-        <h4><b>Expertises</b> (mots-clés)</h3>
-    """)
+    # # Mots-clés
+    # f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
+    # f.write("""
+    #     <h4><b>Expertises</b> (mots-clés)</h3>
+    # """)
 
 
-    f.write(
-        f"""
-        </select>
-        <div style="clear: both;"></div>
-        <!-- Conteneur gauche -->
-        <!-- Conteneur gauche -->
-        <div id="tableExpertises" class="col-md-4" 
-            style="float:left; margin-top:20px; max-height:350px; overflow-y:auto;">
-            {table_motsCles}
-        </div>
-        <!-- Conteneur droit -->
-        <div class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
-            <iframe src='figures/visualization_motsCles.html' height="525" width="100%" 
-                style="padding-left:40px; padding-right:40px; height:350px;">
-             </iframe>
-        </div>
-        """
-    )
+    # f.write(
+    #     f"""
+    #     </select>
+    #     <div style="clear: both;"></div>
+    #     <!-- Conteneur gauche -->
+    #     <!-- Conteneur gauche -->
+    #     <div id="tableExpertises" class="col-md-4" 
+    #         style="float:left; margin-top:20px; max-height:350px; overflow-y:auto;">
+    #         {table_motsCles}
+    #     </div>
+    #     <!-- Conteneur droit -->
+    #     <div class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
+    #         <iframe src='figures/visualization_motsCles.html' height="525" width="100%" 
+    #             style="padding-left:40px; padding-right:40px; height:350px;">
+    #          </iframe>
+    #     </div>
+    #     """
+    # )
 
     ### Affiliations 
     f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
