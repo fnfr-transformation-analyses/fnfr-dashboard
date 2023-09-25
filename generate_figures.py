@@ -268,6 +268,105 @@ for concours in expertises['Concours / Award'].unique():
     repartitionExpertisesTables[str(concours)] = table
 
 
+### Expertises - mots-clés (profils Google Scholar)
+from sentence_transformers import SentenceTransformer, util
+import time
+
+expertises_motCles = pd.read_csv('data/fnfr_expertises_tout.csv')
+
+# Model for computing sentence embeddings. We use one trained for similar questions detection
+corpus_sentences = expertises_motCles['interests'].tolist()
+model = SentenceTransformer('all-MiniLM-L6-v2')
+corpus_embeddings = model.encode(corpus_sentences, batch_size=64, show_progress_bar=True, convert_to_tensor=True)
+
+
+print("Start clustering")
+start_time = time.time()
+
+#Two parameters to tune:
+#min_cluster_size: Only consider cluster that have at least 25 elements
+#threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
+clusters = util.community_detection(corpus_embeddings, min_community_size=5, threshold=0.75)
+
+#Print for all clusters the top 3 and bottom 3 elements
+# store the data
+cluster_name_list = []
+corpus_sentences_list = []
+
+
+for i, cluster in enumerate(clusters):
+    for sentence_id in cluster:
+        corpus_sentences_list.append(corpus_sentences[sentence_id])
+        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+
+df_motsCles = pd.DataFrame(None)
+df_motsCles['cluster'] = cluster_name_list
+df_motsCles["mot-clé"] = corpus_sentences_list
+
+#Print for all clusters the top 3 and bottom 3 elements
+# store the data
+cluster_name_list = []
+corpus_sentences_list = []
+
+
+for i, cluster in enumerate(clusters):
+    for sentence_id in cluster:
+        corpus_sentences_list.append(corpus_sentences[sentence_id])
+        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+
+df_motsCles = pd.DataFrame(None)
+df_motsCles['cluster'] = cluster_name_list
+df_motsCles["mot-clé"] = corpus_sentences_list
+table_motsCles = df_motsCles.to_html(classes = tableClasses, justify='left', index=False)
+
+
+#Print for all clusters the top 3 and bottom 3 elements
+# store the data
+cluster_name_list = []
+corpus_sentences_list = []
+
+
+for i, cluster in enumerate(clusters):
+    for sentence_id in cluster:
+        corpus_sentences_list.append(corpus_sentences[sentence_id])
+        cluster_name_list.append("{}".format(corpus_sentences[cluster[0]]))
+
+df_motsCles = pd.DataFrame(None)
+df_motsCles['cluster'] = cluster_name_list
+df_motsCles["mot-clé"] = corpus_sentences_list
+
+df = pd.DataFrame(None)
+df['cluster'] = cluster_name_list
+df["mot-clé"] = corpus_sentences_list
+
+from sklearn.manifold import TSNE
+import numpy as np 
+import plotly_express as px
+
+sentences = df['mot-clé'].tolist()
+X = np.array(model.encode(sentences))
+
+X_embedded = TSNE(n_components=2).fit_transform(X)
+
+df_embeddings = pd.DataFrame(X_embedded)
+df_embeddings = df_embeddings.rename(columns={0:'x',1:'y'})
+df_embeddings = df_embeddings.assign(cluster=df['cluster'].values)
+df_embeddings = df_embeddings.assign(mot_cle=df['mot-clé'].values)
+
+
+fig_motsCles = px.scatter(
+    df_embeddings, 
+    x='x', 
+    y='y', 
+    color='cluster', 
+    labels={'color': 'label'},
+    hover_data=['mot_cle']
+)
+
+with open('figures/visualization_motsCles.html', 'w') as f:
+    f.write(fig_motsCles.to_html(full_html=False, include_plotlyjs='cdn'))
+
+
 ### Types d'affiliations
 typesAffiliations = pd.read_csv('data/fnfr_types_affiliations.csv').rename(columns={'concours':'Concours / Award'})
 

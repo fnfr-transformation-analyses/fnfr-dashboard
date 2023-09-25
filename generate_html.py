@@ -150,6 +150,32 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </script> 
     """)
 
+    # Mots-clés
+    f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
+    f.write("""
+        <h4><b>Expertises</b> (mots-clés)</h3>
+    """)
+
+
+    f.write(
+        f"""
+        </select>
+        <div style="clear: both;"></div>
+        <!-- Conteneur gauche -->
+        <!-- Conteneur gauche -->
+        <div id="tableExpertises" class="col-md-4" 
+            style="float:left; margin-top:20px; max-height:350px; overflow-y:auto;">
+            {table_motsCles}
+        </div>
+        <!-- Conteneur droit -->
+        <div class="col-md-8" style="float: right; margin-top:10px; padding-bottom:20px;">
+            <iframe src='figures/visualization_motsCles.html' height="525" width="100%" 
+                style="padding-left:40px; padding-right:40px; height:350px;">
+             </iframe>
+        </div>
+        """
+    )
+
     ### Affiliations 
     f.write('<div style="clear:both; margin-top:400px;"><hr style="margin-bottom: 30px;"/></div>') 
 
