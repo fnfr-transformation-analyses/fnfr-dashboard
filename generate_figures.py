@@ -122,6 +122,7 @@ def generate_geo_figure(df: pd.DataFrame) -> plotly.graph_objs._figure.Figure:
         size_max = 50,
         height=440,
         projection = 'equirectangular',
+        color_discrete_sequence=px.colors.qualitative.Prism,
     )
 
     # Customize the layout
@@ -389,9 +390,9 @@ for concours in expertises['Concours / Award'].unique():
         hole = 0.5,
         color_discrete_map=
             {
-                'Santé':'#636efa',
-                'Sciences naturelles / génie':'#ef553b',
-                'Sciences humaines et sociales':'#00cc96'
+                'Santé':'#8f7db1',
+                'Sciences naturelles / génie':'#6cbab9',
+                'Sciences humaines et sociales':'#d47d71'
             },
         category_orders={"Champ d'expertise": ["Santé", "Sciences naturelles / génie", "Sciences humaines et sociales"]}
     )
@@ -532,6 +533,7 @@ for concours in freqTypeAffiliations['Concours / Award'].unique():
         names = "Affiliation",
         color = "Affiliation",
         hover_name = 'Affiliation',
+        color_discrete_sequence=px.colors.qualitative.Prism,
         values = 'N',
         hole = 0.5,
     )
