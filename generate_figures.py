@@ -258,9 +258,11 @@ def generate_geo_figure_provinces(df: pd.DataFrame) -> plotly.graph_objs._figure
         legend_title_text='',
         margin=dict(t=0, l=0, r=0, b=0),
         legend=dict(
-        y=0.95,  # Adjust the y value to move the legend lower (0.0 is at the bottom)
-        x=0.8,
-        font=dict(size=11)
+        y=0,  # Adjust the y value to move the legend lower (0.0 is at the bottom)
+        x=0.025,
+        orientation='h', # Horizontal orientation
+        entrywidth=130,
+        font=dict(size=10)
         )
     )
 

@@ -137,7 +137,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
             style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
         </div>
         <!-- Conteneur droit -->
-        <div id="containerProvince" class="col-md-8" style="float: right; padding-left:40px;">
+        <div id="containerProvince" class="col-md-8" style="float: right; padding-left:40px; margin-top:20px;">
             <iframe id="embeddedFrameProvince" height="525" width="100%"
                 style="padding:0px; overflow-y:auto;">
             </iframe>
