@@ -235,7 +235,7 @@ def generate_geo_figure_provinces(df: pd.DataFrame) -> plotly.graph_objs._figure
         lon='Longitude',
         size='count',
         color = 'Province',
-        size_max = 40,
+        size_max = 50,
         color_discrete_sequence=px.colors.qualitative.Prism,
         projection='equirectangular',  # You can change the projection as needed
         hover_data={'Longitude':False,'Latitude':False}
@@ -255,9 +255,12 @@ def generate_geo_figure_provinces(df: pd.DataFrame) -> plotly.graph_objs._figure
 
 
     figProvince = figProvince.update_layout( 
-        margin=dict(t=0, l=20, r=20, b=0),
+        legend_title_text='',
+        margin=dict(t=0, l=0, r=0, b=0),
         legend=dict(
-        y=0.85,  # Adjust the y value to move the legend lower (0.0 is at the bottom)
+        y=0.95,  # Adjust the y value to move the legend lower (0.0 is at the bottom)
+        x=0.8,
+        font=dict(size=11)
         )
     )
 

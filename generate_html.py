@@ -54,10 +54,20 @@ with open('index.html', 'w', encoding='utf-8') as f:
         i+=1
 
     # Répartition géographique -- International
-    f.write('<h4 style = "margin-top: 50px;">Répartition géographique (international)</h4>')
+    f.write('<h4 style = "margin-top: 50px; margin-bottom:12px;">Répartition géographique</h4>')
+    f.write("""
+        <nav>
+        <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#international" type="button" role="tab" aria-controls="nav-home" aria-selected="true">International</button>
+            <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#canada" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Canada</button>
+        </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+    """)
     
     # Conteneur principal
-    f.write('<div style="clear: both;"></div>')
+    f.write('<div class="tab-pane fade show active" id="international" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">')
+    f.write('<div style="clear: both; margin-top:30px;"></div>')
     f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="fileSelector" onchange="changeIframeSource()">')
     f.write('<option value="figures/geo/international/all.html">Sélectionner un critère</option>')
 
@@ -102,12 +112,12 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </script> 
     """)
     f.write('<div style="clear:both; margin-top:600px;"><hr style="margin-bottom: 30px;"/></div>') 
+    f.write('</div>')
 
-    # Répartition géographique -- Canada (to-do : système d'onglets)
-    f.write('<h4 style = "margin-top: 50px;">Répartition géographique (pancanadienne)</h4>')
-    
+    # Répartition géographique -- Canada 
+    f.write('<div class="tab-pane fade" id="canada" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">')
     # Conteneur principal
-    f.write('<div style="clear: both;"></div>')
+    f.write('<div style="clear: both; margin-top:30px;"></div>')
     f.write('<select class="form-select" style="width:40%; margin-bottom:20px;" id="fileSelectorProvince" onchange="changeIframeSourceProvince()">')
     f.write('<option value="figures/geo/canada/all.html">Sélectionner un critère</option>')
 
@@ -127,8 +137,8 @@ with open('index.html', 'w', encoding='utf-8') as f:
             style="float:left; margin-top:20px; max-height:525px; overflow-y:auto;">
         </div>
         <!-- Conteneur droit -->
-        <div id="containerProvince" class="col-md-8" style="float: right; margin-top:-40px; padding-bottom:20px;">
-            <iframe id="embeddedFrameProvince" height="525" width="100%" 
+        <div id="containerProvince" class="col-md-8" style="float: right; padding-left:40px;">
+            <iframe id="embeddedFrameProvince" height="525" width="100%"
                 style="padding:0px; overflow-y:auto;">
             </iframe>
         </div>
@@ -152,6 +162,7 @@ with open('index.html', 'w', encoding='utf-8') as f:
         </script> 
     """)
     f.write('<div style="clear:both; margin-top:600px;"><hr style="margin-bottom: 30px;"/></div>') 
+    f.write("</div>")
 
 
     ### Expertises de recherche
