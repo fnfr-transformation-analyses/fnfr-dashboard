@@ -312,8 +312,6 @@ freqProvinceConcours = affiliationsCanada.groupby(['concours', 'Province', 'code
 freqProvinceConcours = freqProvinceConcours.rename(columns={'chercheur': 'count'})
 freqProvinceConcours = freqProvinceConcours.merge(province_info, on='Province')
 
-
-### Revoir à partir d'ici
 for c in freqProvinceConcours['concours'].unique():
     subdf = freqProvinceConcours[freqProvinceConcours['concours'] == c]
 
@@ -512,44 +510,102 @@ for concours in expertises['Concours / Award'].unique():
 #     f.write(fig_motsCles.to_html(full_html=False, include_plotlyjs='cdn'))
 
 
+tableClasses = ['table', 'table-hover']
+
 ### Types d'affiliations
-typesAffiliations = pd.read_csv('data/fnfr_types_affiliations.csv').rename(columns={'concours':'Concours / Award'})
+typesAffiliations = pd.read_csv('data/fnfr_types_affiliations.csv').rename(columns={'type affiliation': "Affiliation"})
 
-tout = pd.DataFrame(typesAffiliations['type affiliation'].value_counts()).reset_index()
-tout['Concours / Award'] = 'Tout'
-
-freqTypeAffiliations = typesAffiliations.groupby(['Concours / Award'])['type affiliation'].value_counts().reset_index()
-freqTypeAffiliations = pd.concat([tout, freqTypeAffiliations])
-freqTypeAffiliations = freqTypeAffiliations.rename(columns={"count": "N", 'type affiliation': "Affiliation"})
-freqTypeAffiliations = freqTypeAffiliations[['Concours / Award', "Affiliation", "N"]]
-
-
-repartitionAffiliationsFig = {}
-repartitionAffiliations = {}
-for concours in freqTypeAffiliations['Concours / Award'].unique():
-    df = freqTypeAffiliations[freqTypeAffiliations['Concours / Award'] == concours]
+def generate_fig_affiliations(df: pd.DataFrame) -> plotly.graph_objs._figure.Figure:
     fig = px.pie(
-        df,
-        names = "Affiliation",
-        color = "Affiliation",
-        hover_name = 'Affiliation',
-        color_discrete_sequence=px.colors.qualitative.Prism,
-        values = 'N',
-        hole = 0.5,
+    df,
+    names = "Affiliation",
+    color = "Affiliation",
+    hover_name = 'Affiliation',
+    color_discrete_sequence=px.colors.qualitative.Prism,
+    values = 'count',
+    hole = 0.5,
     )
 
     fig.update_layout(
         margin=dict(l=55, r=0, t=0, b=0),
         legend=dict(yanchor="top",y=1,xanchor="left", x=-0.7)
     )
+
+    return fig
+
+# Générer les figures 
+figsAffiliations = []
+tablesFreqAffiliations = {}
+mappingTables = {'count': 'N'}
+
+# Figure - Tous les projets
+freqTypeAffiliations = typesAffiliations['Affiliation'].value_counts().reset_index()
+
+with open('figures/affiliations/all.html', 'w') as f:
+    f.write(generate_fig_affiliations(freqTypeAffiliations).to_html(full_html=False, include_plotlyjs='cdn'))
+
+figsAffiliations.append(
+    {
+        'Nom': 'Tout',
+        'Fichier': 'figures/affiliations/all.html'
+    }
+)
+
+# Create the table to display aside from the figure
+tableF = freqTypeAffiliations.rename(columns = mappingTables)
+tableF = tableF.sort_values(by=['N'], ascending=[False])[['Affiliation', 'N']]
+tablesFreqAffiliations[f"figures/affiliations/all.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+
+# Figures - Par projet
+freqTypeAffiliations = typesAffiliations.groupby(['concours'])['Affiliation'].value_counts().reset_index()
+freqTypeAffiliations = freqTypeAffiliations[['concours', "Affiliation", "count"]]
+
+for c in freqTypeAffiliations['concours'].unique():
+    subdf = freqTypeAffiliations[freqTypeAffiliations['concours'] == c]
+
+    with open(f"figures/affiliations/{c}.html", "w", encoding="utf-8") as f:
+        f.write(generate_fig_affiliations(subdf).to_html(full_html=False, include_plotlyjs='cdn'))
+
+
+    figsAffiliations.append(
+        {
+            'Nom': c,
+            'Fichier': f'figures/affiliations/{c}.html'
+        }
+    )
+
+    subdf = subdf[['Affiliation', 'count']].sort_values(by='count', ascending=False) 
+
+    # Create the table to display aside from the figure
+    tableF = subdf.rename(columns = mappingTables)
+    tablesFreqAffiliations[f'figures/affiliations/{c}.html'] = tableF.to_html(classes = tableClasses, justify='left', index=False)
     
-    fileName = f"figures/affiliations/{concours}.html"
-    with open(fileName, "w", encoding="utf-8") as f:
-        f.write(fig.to_html(full_html=False, include_plotlyjs='cdn'))
+    # Figures - Par projet
+    freqAffiliationsProjets = typesAffiliations.groupby(['projet', 'concours', 'Affiliation'])['chercheur'].count().reset_index()
+    freqAffiliationsProjets = freqAffiliationsProjets[freqAffiliationsProjets['concours'] == c]
+    freqAffiliationsProjets = freqAffiliationsProjets.rename(columns={'chercheur': 'count'})
 
-    table = df[["Affiliation", "N"]].sort_values(by="N", ascending=False)
-    table = table.to_html(classes = tableClasses, justify='left', index=False)
+    for p in freqAffiliationsProjets['projet'].unique():
+        slugifiedName = slugify(p)[:30]
 
-    repartitionAffiliationsFig[str(concours)] = fileName
-    repartitionAffiliations[str(concours)] = table
+        ssubdf = freqAffiliationsProjets[freqAffiliationsProjets['projet'] == p]
 
+        with open(f'figures/affiliations/{slugifiedName}.html', 'w') as f:
+            f.write(generate_fig_affiliations(ssubdf).to_html(full_html=False, include_plotlyjs='cdn'))
+
+        figsAffiliations.append(
+            {
+                'Nom': f"{c} -- {p}",
+                'Fichier': f'figures/affiliations/{slugifiedName}.html'
+            }
+        ) 
+
+        ssubdf = ssubdf[['Affiliation', 'count']].sort_values(by='count', ascending=False)
+        
+        # Create the table to display aside from the figure
+        tableF = ssubdf.rename(columns = mappingTables)
+
+        tableF = tableF.sort_values(by=['N'], ascending=[False])
+        tablesFreqAffiliations[f"figures/affiliations/{slugifiedName}.html"] = tableF.to_html(classes = tableClasses, justify='left', index=False)
+
+tablesFreqAffiliations = str(tablesFreqAffiliations)
